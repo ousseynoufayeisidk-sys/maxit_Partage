@@ -7,8 +7,8 @@ import { useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { collected, daysLeft, formatNumber, isDone, paidCount, type Collecte, type Motif, type Participant } from "@/lib/collecte";
 import { useStore } from "@/lib/store";
-import ouz from "@/assets/ouz.jpg.asset.json";
-import mascotJoj from "@/assets/mascot-joj.png.asset.json";
+import ouz from "@/assets/ouz.jpg";
+import mascotJoj from "@/assets/mascot-joj.png";
 import { collecteImages } from "@/lib/collecte-images";
 
 export const MOTIFS: { id: Motif; label: string; icon: LucideIcon }[] = [
@@ -22,7 +22,7 @@ export const MOTIFS: { id: Motif; label: string; icon: LucideIcon }[] = [
 export const motifIcon = (m: Motif) => MOTIFS.find((x) => x.id === m)?.icon ?? Users;
 export const motifLabel = (m: Motif) => MOTIFS.find((x) => x.id === m)?.label ?? "Autre";
 
-export const avatarUrl = ouz.url;
+export const avatarUrl = ouz;
 
 /** Mobile app frame: full screen on phones, centered phone-width column on desktop. */
 export function Screen({ children, nav = true, className }: { children: ReactNode; nav?: boolean; className?: string }) {
@@ -321,7 +321,7 @@ export function JojMascot() {
           className="pointer-events-auto tap block"
         >
           <img
-            src={mascotJoj.url}
+            src={mascotJoj}
             alt=""
             width={64}
             height={64}
