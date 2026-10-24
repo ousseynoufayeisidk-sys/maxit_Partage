@@ -25,7 +25,7 @@ export function ShareSheet({ collecteId, collecteTitle, onClose }: { collecteId:
             .from('participants')
             .select('id, prenom, nom, invite_token')
             .eq('collecte_id', collecteId)
-            .is('profile_id', null) // Only show unclaimed invitations (guests not yet joined)
+            .or(`profile_id.is.null,profile_id.neq.${currentUserId}`) // Show unclaimed invitations OR other participants
         );
 
         if (error) throw error;
