@@ -41,9 +41,16 @@ function Paiement() {
     if (paying.current || pin.length !== 4 || !validPhone) return;
     paying.current = true;
     setStep("processing");
-    for (const m of STEPS) { setMsg(m); await sleep(900); }
-    const ref = actions.pay(c.id, me.id);
-    await nav({ to: "/confirmation/$id", params: { id: c.id }, search: { ref } });
+    try {
+      for (const m of STEPS) { setMsg(m); await sleep(900); }
+      const ref = await actions.pay(c.id, me.id);
+      await nav({ to: "/confirmation/$id", params: { id: c.id }, search: { ref } });
+    } catch (err) {
+      console.error("Payment failed:", err);
+      toast("Erreur lors du paiement. Réessayez.");
+      paying.current = false;
+      setStep("code");
+    }
   };
 
   if (step === "processing") return (

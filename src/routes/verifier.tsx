@@ -7,6 +7,7 @@ import { formatDate, formatFCFA, perPerson } from "@/lib/collecte";
 import { actions, useStore } from "@/lib/store";
 import { share } from "@/lib/share";
 import { collecteImages } from "@/lib/collecte-images";
+import { displayPhone, nationalPhone } from "@/lib/payment-input";
 
 export const Route = createFileRoute("/verifier")({
   head: () => ({
@@ -26,21 +27,56 @@ function Verifier() {
   const d = useStore((s) => s.draft);
   const nav = useNavigate();
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const creating = useRef(false);
   if (!d.title && !creating.current) return <Navigate to="/creer" />;
   const others = d.count - 1;
 
   const add = () => {
-    if (!name.trim() || d.names.length >= others) return;
-    actions.updateDraft({ names: [...d.names, name.trim()] });
+    const trimmedName = name.trim();
+    const normalized = nationalPhone(phone);
+    
+    // Validate name
+    if (!trimmedName || d.names.length >= others) {
+      setPhoneError("Nom requis.");
+      return;
+    }
+    
+    // Validate phone (9 digits)
+    if (normalized.length !== 9) {
+      setPhoneError("Le numéro doit contenir exactement 9 chiffres.");
+      return;
+    }
+    
+    // Check for duplicate phone
+    const fullPhone = `+221${normalized}`;
+    if (d.phones.includes(fullPhone)) {
+      setPhoneError("Ce numéro est déjà dans la liste.");
+      return;
+    }
+    
+    actions.updateDraft({ 
+      names: [...d.names, trimmedName],
+      phones: [...d.phones, fullPhone]
+    });
     setName("");
+    setPhone("");
+    setPhoneError("");
   };
-  const create = (thenShare: boolean) => {
+  
+  const create = async (thenShare: boolean) => {
     creating.current = true;
-    const id = actions.createFromDraft();
-    toast.success("Collecte créée !");
-    if (thenShare) share(d.title);
-    nav({ to: "/collecte/$id", params: { id } });
+    try {
+      const id = await actions.createFromDraft();
+      toast.success("Collecte créée !");
+      if (thenShare) await share(d.title);
+      await nav({ to: "/collecte/$id", params: { id } });
+    } catch (err) {
+      console.error("Failed to create collecte:", err);
+      toast.error("Erreur lors de la création de la collecte.");
+      creating.current = false;
+    }
   };
 
   return (
@@ -76,10 +112,42 @@ function Verifier() {
             ))}
           </div>
           {d.names.length < others && (
-            <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); add(); }}>
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom ou numéro"
-                className="h-11 flex-1 rounded-xl border bg-background px-3 text-sm outline-none focus:border-primary" />
-              <button aria-label="Ajouter" className="tap grid size-11 place-items-center rounded-xl bg-primary-soft text-primary"><Plus className="size-5" /></button>
+            <form className="mt-3 space-y-2" onSubmit={(e) => { e.preventDefault(); add(); }}>
+              <input 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+                placeholder="Prénom et nom"
+                className="h-11 w-full rounded-xl border bg-background px-3 text-sm outline-none focus:border-primary" 
+              />
+              <div className="flex gap-2">
+                <div className="flex flex-1 items-center rounded-xl border bg-card shadow-card">
+                  <div className="flex shrink-0 items-center gap-2 border-r px-3">
+                    <span className="text-base" aria-hidden>🇸🇳</span>
+                    <span className="text-xs font-semibold">+221</span>
+                  </div>
+                  <input 
+                    type="tel"
+                    inputMode="tel"
+                    value={displayPhone(phone)}
+                    onChange={(e) => {
+                      setPhone(nationalPhone(e.target.value));
+                      setPhoneError("");
+                    }}
+                    placeholder="77 123 45 67"
+                    className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground" 
+                  />
+                </div>
+                <button 
+                  type="submit"
+                  aria-label="Ajouter" 
+                  className="tap grid size-11 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary"
+                >
+                  <Plus className="size-5" />
+                </button>
+              </div>
+              {phoneError && (
+                <p className="text-xs text-destructive">{phoneError}</p>
+              )}
             </form>
           )}
           <button onClick={() => share(d.title)} className="mt-4 flex w-full items-center justify-between rounded-xl bg-primary-soft px-4 py-3 text-sm font-medium text-accent-foreground">

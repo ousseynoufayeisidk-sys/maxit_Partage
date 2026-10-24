@@ -17,6 +17,7 @@ import { Route as ProfilRouteImport } from './routes/profil'
 import { Route as VerifierRouteImport } from './routes/verifier'
 import { Route as CollecteIdRouteImport } from './routes/collecte.$id'
 import { Route as ConfirmationIdRouteImport } from './routes/confirmation.$id'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as PaiementIdRouteImport } from './routes/paiement.$id'
 import { Route as SuiviIdRouteImport } from './routes/suivi.$id'
 
@@ -60,6 +61,11 @@ const ConfirmationIdRoute = ConfirmationIdRouteImport.update({
   path: '/confirmation/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PaiementIdRoute = PaiementIdRouteImport.update({
   id: '/paiement/$id',
   path: '/paiement/$id',
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/verifier': typeof VerifierRoute
   '/collecte/$id': typeof CollecteIdRoute
   '/confirmation/$id': typeof ConfirmationIdRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/paiement/$id': typeof PaiementIdRoute
   '/suivi/$id': typeof SuiviIdRoute
 }
@@ -92,6 +99,7 @@ export interface FileRoutesByTo {
   '/verifier': typeof VerifierRoute
   '/collecte/$id': typeof CollecteIdRoute
   '/confirmation/$id': typeof ConfirmationIdRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/paiement/$id': typeof PaiementIdRoute
   '/suivi/$id': typeof SuiviIdRoute
 }
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   '/verifier': typeof VerifierRoute
   '/collecte/$id': typeof CollecteIdRoute
   '/confirmation/$id': typeof ConfirmationIdRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/paiement/$id': typeof PaiementIdRoute
   '/suivi/$id': typeof SuiviIdRoute
 }
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/verifier'
     | '/collecte/$id'
     | '/confirmation/$id'
+    | '/invite/$token'
     | '/paiement/$id'
     | '/suivi/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
     | '/verifier'
     | '/collecte/$id'
     | '/confirmation/$id'
+    | '/invite/$token'
     | '/paiement/$id'
     | '/suivi/$id'
   id:
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '/verifier'
     | '/collecte/$id'
     | '/confirmation/$id'
+    | '/invite/$token'
     | '/paiement/$id'
     | '/suivi/$id'
   fileRoutesById: FileRoutesById
@@ -156,6 +168,7 @@ export interface RootRouteChildren {
   VerifierRoute: typeof VerifierRoute
   CollecteIdRoute: typeof CollecteIdRoute
   ConfirmationIdRoute: typeof ConfirmationIdRoute
+  InviteTokenRoute: typeof InviteTokenRoute
   PaiementIdRoute: typeof PaiementIdRoute
   SuiviIdRoute: typeof SuiviIdRoute
 }
@@ -218,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConfirmationIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/paiement/$id': {
       id: '/paiement/$id'
       path: '/paiement/$id'
@@ -244,6 +264,7 @@ const rootRouteChildren: RootRouteChildren = {
   VerifierRoute: VerifierRoute,
   CollecteIdRoute: CollecteIdRoute,
   ConfirmationIdRoute: ConfirmationIdRoute,
+  InviteTokenRoute: InviteTokenRoute,
   PaiementIdRoute: PaiementIdRoute,
   SuiviIdRoute: SuiviIdRoute,
 }

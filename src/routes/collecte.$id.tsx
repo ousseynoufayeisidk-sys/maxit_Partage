@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { CalendarDays, CheckCircle2, ChevronRight, Coins, Share2, Users } from "lucide-react";
-import { useState } from "react";
+import { CalendarDays, CheckCircle2, ChevronRight, Coins, Share2, Users, X } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Avatar, Btn, DoneBanner, MotifBadge, motifLabel, Progress, Screen, StatusPill, TopBar } from "@/components/app/ui";
 import { collected, formatDate, formatFCFA, formatNumber, isDone, paidCount } from "@/lib/collecte";
 import { useStore } from "@/lib/store";
@@ -28,13 +28,49 @@ function Detail() {
   const { id } = Route.useParams();
   const c = useStore((s) => s.collectes.find((x) => x.id === id));
   const [tab, setTab] = useState<(typeof TABS)[number]>("Détails");
+  const [showWelcome, setShowWelcome] = useState(false);
+  
   if (!c) throw notFound();
-  const got = collected(c), me = c.participants.find((p) => p.isMe);
+  
+  const got = collected(c);
+  const me = c.participants.find((p) => p.isMe);
+  
+  // Guest detection: if createdBy is not "Vous", this is a guest view
+  const isGuest = c.createdBy !== "Vous";
+  
+  // Show welcome banner for guests on first visit
+  useEffect(() => {
+    if (isGuest && typeof window !== "undefined") {
+      const key = `welcomed-${c.id}`;
+      const hasBeenWelcomed = localStorage.getItem(key);
+      if (!hasBeenWelcomed) {
+        setShowWelcome(true);
+        localStorage.setItem(key, "true");
+      }
+    }
+  }, [isGuest, c.id]);
 
   return (
     <Screen nav={false}>
       <TopBar title="Détails" />
       <div className="px-5 pb-40">
+        {showWelcome && isGuest && me && (
+          <div className="mb-4 rounded-2xl bg-success/10 p-4 flex items-start gap-3">
+            <CheckCircle2 className="size-5 text-success mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold text-sm">Bienvenue, {me.name.split(' ')[0]} !</p>
+              <p className="text-xs text-muted-foreground mt-1">Vous ne verrez que votre part dans cette collecte.</p>
+            </div>
+            <button 
+              onClick={() => setShowWelcome(false)}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="Fermer"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        )}
+        
         <div className="relative">
           <img src={collecteImages[c.motif].src} alt={collecteImages[c.motif].alt} width={1088} height={608} className="aspect-[16/9] w-full rounded-3xl object-cover" />
           <div className="absolute -bottom-6 left-4 rounded-full bg-card p-1 shadow-card"><MotifBadge motif={c.motif} size="lg" /></div>
@@ -71,9 +107,11 @@ function Detail() {
                   <span>Créée par <strong>{c.createdBy}</strong><br /><span className="text-muted-foreground">{formatDate(c.createdAt)}</span></span></figcaption>
               </figure>
             )}
-            <Link to="/suivi/$id" params={{ id: c.id }} className="flex items-center justify-between rounded-2xl bg-card p-4 text-sm font-semibold shadow-card">
-              Suivre les paiements <ChevronRight className="size-4" />
-            </Link>
+            {!isGuest && (
+              <Link to="/suivi/$id" params={{ id: c.id }} className="flex items-center justify-between rounded-2xl bg-card p-4 text-sm font-semibold shadow-card">
+                Suivre les paiements <ChevronRight className="size-4" />
+              </Link>
+            )}
           </div>
         )}
 

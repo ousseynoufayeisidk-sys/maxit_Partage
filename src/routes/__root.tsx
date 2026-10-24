@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { hydrateStore } from "../lib/store";
+import { supabase } from "../lib/supabase";
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
@@ -121,7 +122,23 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  useEffect(() => hydrateStore(), []);
+  
+  useEffect(() => {
+    // Initial hydration
+    hydrateStore();
+
+    // Set up auth state listener to re-hydrate on sign-in
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") {
+        hydrateStore();
+      }
+    });
+
+    // Cleanup: unsubscribe from auth listener
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
