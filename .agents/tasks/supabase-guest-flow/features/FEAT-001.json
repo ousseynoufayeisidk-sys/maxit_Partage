@@ -1,0 +1,32 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Database schema setup: Create SQL migration with profiles, collectes, participants, history tables, RLS policies, and security definer RPCs (get_invite_preview, claim_invitation, pay_participant). Includes indexes for performance and all foreign key constraints.",
+  "status": "completed",
+  "steps": [
+    "Create supabase/ directory and supabase/migrations/ subdirectory in workspace root",
+    "Create supabase/migrations/0001_init_schema.sql with: profiles table (id uuid PK FK auth.users, prenom text >=2, nom text >=2, phone text unique E.164 +221XXXXXXXXX, created_at), collectes table (id uuid PK, title text >=3, motif enum, total int >0, deadline date null, message text null, created_by uuid FK profiles, history jsonb default '[]', created_at), participants table (id uuid PK, collecte_id uuid FK collectes ON DELETE CASCADE, profile_id uuid null FK profiles ON DELETE CASCADE, prenom text, nom text, phone text null E.164, amount int >0, status enum attente/paye, invite_token text unique, joined_at null, created_at), with all indexes on collecte_id, profile_id, phone, invite_token, deadline",
+    "Add RLS policies to migration: enable RLS on all tables; profiles SELECT/UPDATE for auth.uid() = id only; collectes SELECT if created_by OR participant, INSERT/UPDATE if created_by only; participants SELECT if in same collecte via creator or participant, INSERT if collecte creator only, UPDATE if own profile_id or collecte creator; all WITH CHECK clauses prevent reassignment",
+    "Add get_invite_preview(token_input TEXT) RPC SECURITY DEFINER: fetch participant by token, check not claimed, check collecte deadline not expired, return {success, collecte_id, collecte_title, motif, amount, created_by_name, deadline} or error {success: false, error, message}",
+    "Add claim_invitation(token_input, prenom_input, nom_input, phone_input) RPC SECURITY DEFINER: validate inputs (length >=2, phone E.164), fetch participant by token, check not claimed or idempotent if same auth.uid(), check deadline, check phone not taken by different user, upsert profile, link participant.profile_id = auth.uid(), append history entry 'X a rejoint', return {success, collecte_id, message}",
+    "Add pay_participant(collecte_id_input, participant_id_input) RPC SECURITY DEFINER: verify auth, check participant exists and matches collecte, check authorization (own participant or collecte creator), check not already paid (idempotent), generate ref MXP-XXXX-XX, update status='paye', append history 'X a payé Y FCFA', return {success, ref, message}",
+    "Add GRANT EXECUTE permissions: get_invite_preview to anon and authenticated, claim_invitation and pay_participant to authenticated only",
+    "Document migration file with comments explaining each RLS policy and RPC purpose"
+  ],
+  "acceptance_criteria": [
+    "Migration file supabase/migrations/0001_init_schema.sql exists with valid PostgreSQL syntax",
+    "All tables have primary keys, foreign keys with ON DELETE CASCADE, check constraints, and indexes",
+    "RLS policies prevent guests from seeing collectes they don't participate in, prevent guests from inserting participants, prevent cross-user data leaks",
+    "All three RPCs return JSON with {success: boolean, ...} structure and handle error cases (invalid_token, already_claimed, expired, phone_taken, forbidden)",
+    "Phone format validation enforces +221XXXXXXXXX (exactly 9 digits after +221)",
+    "History is JSONB array appended atomically with collecte updates"
+  ],
+  "verification": [
+    "Read supabase/migrations/0001_init_schema.sql and confirm it parses (no syntax errors visible)",
+    "Verify all RLS policies present: profiles (2), collectes (3), participants (3)",
+    "Verify all RPCs present with correct signatures and SECURITY DEFINER",
+    "Check all tables have indexes on foreign keys and query columns (collecte_id, profile_id, phone, invite_token, deadline)"
+  ],
+  "blocked_reason": null,
+  "findings": "Migration file created successfully with all required components: 3 tables (profiles, collectes, participants) with proper constraints and foreign keys, 5 indexes for query performance, 3 tables with RLS enabled, 8 RLS policies (2 for profiles, 3 for collectes, 3 for participants), 3 SECURITY DEFINER RPCs (get_invite_preview, claim_invitation, pay_participant) with proper error handling and JSON responses, and GRANT permissions for anon and authenticated roles. All SQL syntax validated by inspection. Phone validation enforces E.164 format +221XXXXXXXXX. History is stored as JSONB array on collectes table. Ready for manual application via Supabase dashboard or CLI."
+}
