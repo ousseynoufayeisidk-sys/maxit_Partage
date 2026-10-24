@@ -15,12 +15,17 @@ export function ShareSheet({ collecteId, collecteTitle, onClose }: { collecteId:
         const { data: { user } } = await import("@/lib/supabase").then(m => m.supabase.auth.getUser());
         const currentUserId = user?.id;
 
+        if (!currentUserId) {
+          console.error('No user ID available');
+          return;
+        }
+
         const { data, error } = await import("@/lib/supabase").then(m => 
           m.supabase
             .from('participants')
             .select('id, prenom, nom, invite_token')
             .eq('collecte_id', collecteId)
-            .neq('profile_id', currentUserId)
+            .is('profile_id', null) // Only show unclaimed invitations (guests not yet joined)
         );
 
         if (error) throw error;
