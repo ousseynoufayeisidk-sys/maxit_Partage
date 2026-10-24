@@ -95,6 +95,7 @@ export async function getSession(): Promise<Session | null> {
 
 /**
  * Sign in anonymously. Idempotent: checks for existing session first.
+ * Creates a profile in the profiles table if it doesn't exist.
  * Returns the session after sign-in or throws on error.
  * 
  * @returns Promise<Session> - The authenticated session
@@ -115,6 +116,25 @@ export async function signInAnon(): Promise<Session> {
 
   if (!data.session) {
     throw new Error('Anonymous sign-in succeeded but no session returned');
+  }
+
+  // Ensure profile exists (required for collectes.created_by foreign key)
+  const userId = data.session.user.id;
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .upsert({
+      id: userId,
+      prenom: 'Utilisateur',
+      nom: 'Anonyme',
+      phone: null,
+    }, {
+      onConflict: 'id',
+      ignoreDuplicates: true,
+    });
+
+  if (profileError) {
+    console.error('Failed to create profile:', profileError);
+    // Don't throw - profile might already exist from a previous session
   }
 
   return data.session;
