@@ -184,7 +184,8 @@ function Verifier() {
 function ShareSheet({ collecteId, collecteTitle, onClose }: { collecteId: string; collecteTitle: string; onClose: () => void }) {
   const [participants, setParticipants] = useState<Array<{ id: string; name: string; invite_token: string }>>([]);
   const [loading, setLoading] = useState(true);
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://maxit-partage.vercel.app';
+  // Use production URL for invite links, not preview URLs
+  const baseUrl = import.meta.env.VITE_APP_URL || 'https://maxit-partage.vercel.app';
 
   useState(() => {
     (async () => {
