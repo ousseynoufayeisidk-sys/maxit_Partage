@@ -22,7 +22,7 @@ CREATE TABLE profiles (
 );
 
 COMMENT ON TABLE profiles IS 'User profiles with identity information, linked to auth.users';
-COMMENT ON COLUMN profiles.phone IS 'Phone number in E.164 format: +221XXXXXXXXX (Senegal)';
+COMMENT ON COLUMN profiles.phone IS 'Phone number in E.164 format: +221XXXXXXXXX (Senegal). NULL for creators who authenticate anonymously and never claim an invite. Populated only via claim_invitation RPC when a guest claims their invitation.';
 
 -- collectes: Money collection campaigns
 CREATE TABLE collectes (
@@ -60,6 +60,8 @@ CREATE TABLE participants (
 
 COMMENT ON TABLE participants IS 'Participants in a collecte. profile_id is NULL until they claim their invitation';
 COMMENT ON COLUMN participants.profile_id IS 'Linked profile after claiming invitation. NULL for unclaimed invitations';
+COMMENT ON COLUMN participants.nom IS 'Last name. May be empty/minimal for creator participant row (displayed as "Vous"). Guest participants must provide >= 2 chars via claim_invitation RPC validation.';
+COMMENT ON COLUMN participants.phone IS 'Phone number in E.164 format. NULL for creator and unclaimed invitations. Populated when guest claims invitation.';
 COMMENT ON COLUMN participants.invite_token IS 'Unique token for invitation link /invite/:token';
 COMMENT ON COLUMN participants.status IS 'Payment status: attente (pending) or paye (paid)';
 COMMENT ON COLUMN participants.joined_at IS 'Timestamp when the participant claimed their invitation';
