@@ -168,7 +168,7 @@ async function refreshFromSupabase() {
   }
 }
 
-async function hydrateStore() {
+export async function hydrateStore() {
   if (hydrated || typeof window === "undefined") return;
   hydrated = true;
 
