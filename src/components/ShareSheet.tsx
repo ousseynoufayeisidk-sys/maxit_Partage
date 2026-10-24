@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Share2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, Btn } from "@/components/app/ui";
@@ -9,7 +9,7 @@ export function ShareSheet({ collecteId, collecteTitle, onClose }: { collecteId:
   // Use production URL for invite links, not preview URLs
   const baseUrl = import.meta.env.VITE_APP_URL || 'https://maxit-partage.vercel.app';
 
-  useState(() => {
+  useEffect(() => {
     (async () => {
       try {
         const { data: { user } } = await import("@/lib/supabase").then(m => m.supabase.auth.getUser());
@@ -44,7 +44,7 @@ export function ShareSheet({ collecteId, collecteTitle, onClose }: { collecteId:
         setLoading(false);
       }
     })();
-  });
+  }, [collecteId]);
 
   const copyLink = (token: string, name: string) => {
     const link = `${baseUrl}/invite/${token}`;
