@@ -138,18 +138,14 @@ COMMENT ON POLICY "collectes_update_own" ON collectes IS 'Only the creator can u
 CREATE POLICY "participants_select_same_collecte" ON participants
   FOR SELECT
   USING (
+    -- User can see participants if they created the collecte
     EXISTS (
       SELECT 1 FROM collectes c
       WHERE c.id = participants.collecte_id
-        AND (
-          c.created_by = auth.uid()
-          OR EXISTS (
-            SELECT 1 FROM participants p2
-            WHERE p2.collecte_id = c.id
-              AND p2.profile_id = auth.uid()
-          )
-        )
+        AND c.created_by = auth.uid()
     )
+    -- OR if they are a participant themselves (direct check on THIS row to avoid recursion)
+    OR profile_id = auth.uid()
   );
 
 CREATE POLICY "participants_insert_if_creator" ON participants

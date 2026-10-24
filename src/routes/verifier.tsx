@@ -156,9 +156,6 @@ function Verifier() {
               )}
             </form>
           )}
-          <button onClick={() => share(d.title)} className="mt-4 flex w-full items-center justify-between rounded-xl bg-primary-soft px-4 py-3 text-sm font-medium text-accent-foreground">
-            Partager le lien <Share2 className="size-4" />
-          </button>
         </section>
       </div>
 

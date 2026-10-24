@@ -5,8 +5,8 @@ import { Avatar, Btn, DoneBanner, MotifBadge, motifLabel, Progress, Screen, Stat
 import { collected, formatDate, formatFCFA, formatNumber, isDone, paidCount } from "@/lib/collecte";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { share } from "@/lib/share";
 import { collecteImages } from "@/lib/collecte-images";
+import { ShareSheet } from "@/components/ShareSheet";
 
 export const Route = createFileRoute("/collecte/$id")({
   head: () => ({
@@ -29,6 +29,7 @@ function Detail() {
   const c = useStore((s) => s.collectes.find((x) => x.id === id));
   const [tab, setTab] = useState<(typeof TABS)[number]>("Détails");
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showShareSheet, setShowShareSheet] = useState(false);
   
   if (!c) throw notFound();
   
@@ -142,8 +143,18 @@ function Detail() {
         {me?.status === "attente" && !isDone(c) ? (
           <Link to="/paiement/$id" params={{ id: c.id }} className="block"><Btn>Payer avec Orange Money · {formatFCFA(me.amount)}</Btn></Link>
         ) : null}
-        <Btn variant={me?.status === "attente" ? "soft" : "primary"} onClick={() => share(c.title)}><Share2 className="size-4" /> Partager</Btn>
+        {!isGuest && (
+          <Btn variant={me?.status === "attente" ? "soft" : "primary"} onClick={() => setShowShareSheet(true)}><Share2 className="size-4" /> Partager les invitations</Btn>
+        )}
       </div>
+
+      {showShareSheet && (
+        <ShareSheet 
+          collecteId={c.id} 
+          collecteTitle={c.title}
+          onClose={() => setShowShareSheet(false)} 
+        />
+      )}
     </Screen>
   );
 }
