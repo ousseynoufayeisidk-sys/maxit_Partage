@@ -104,9 +104,11 @@ function transformCollecteFromDB(
   currentUserId: string
 ): Collecte {
   const createdBy = raw.created_by === currentUserId 
-    ? "Vous" 
+    ? "Vous"
+    : raw.creator?.prenom === "Vous"
+      ? "Vous" 
     : raw.creator 
-      ? `${raw.creator.prenom} ${raw.creator.nom}`
+      ? `${raw.creator.prenom} ${raw.creator.nom}`.trim() || "Un ami"
       : "Un ami";
   
   const participants: Participant[] = (raw.participants || []).map((p) => {
@@ -135,7 +137,38 @@ function transformCollecteFromDB(
   };
 }
 
-export async function hydrateStore() {
+export /**
+ * Fetch collectes from Supabase and update the store.
+ * Used after creating/updating collectes to refresh the UI.
+ */
+async function refreshFromSupabase() {
+  try {
+    const session = await getSession();
+    if (!session?.user?.id) {
+      console.warn('No session, cannot refresh from Supabase');
+      return;
+    }
+
+    const userId = session.user.id;
+
+    // Fetch collectes with participants and creator profile
+    const { data, error } = await supabase
+      .from("collectes")
+      .select("*, creator:profiles!created_by(prenom, nom), participants(*)")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    if (data) {
+      const collectes = data.map((row) => transformCollecteFromDB(row as any, userId));
+      set((s) => ({ ...s, collectes }));
+    }
+  } catch (err) {
+    console.error("Failed to refresh from Supabase:", err);
+  }
+}
+
+async function hydrateStore() {
   if (hydrated || typeof window === "undefined") return;
   hydrated = true;
 
@@ -332,7 +365,7 @@ export const actions = {
       if (participantsError) throw participantsError;
 
       // Refresh store from Supabase
-      await hydrateStore();
+      await refreshFromSupabase();
 
       set((s) => ({ ...s, draft: emptyDraft() }));
       return collecteData.id;
@@ -370,7 +403,7 @@ export const actions = {
       }
 
       // Refresh store from Supabase
-      await hydrateStore();
+      await refreshFromSupabase();
 
       return data.ref || `MXP-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(10 + Math.random() * 89)}`;
     } catch (err) {

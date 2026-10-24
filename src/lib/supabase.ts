@@ -120,21 +120,29 @@ export async function signInAnon(): Promise<Session> {
 
   // Ensure profile exists (required for collectes.created_by foreign key)
   const userId = data.session.user.id;
-  const { error: profileError } = await supabase
+  
+  // Check if profile already exists
+  const { data: existingProfile } = await supabase
     .from('profiles')
-    .upsert({
-      id: userId,
-      prenom: 'Utilisateur',
-      nom: 'Anonyme',
-      phone: null,
-    }, {
-      onConflict: 'id',
-      ignoreDuplicates: true,
-    });
+    .select('id')
+    .eq('id', userId)
+    .single();
 
-  if (profileError) {
-    console.error('Failed to create profile:', profileError);
-    // Don't throw - profile might already exist from a previous session
+  // Only create if doesn't exist - use "Vous" as temporary name
+  if (!existingProfile) {
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        prenom: 'Vous',
+        nom: '',
+        phone: null,
+      });
+
+    if (profileError) {
+      console.error('Failed to create profile:', profileError);
+      // Don't throw - profile might already exist from a race condition
+    }
   }
 
   return data.session;
