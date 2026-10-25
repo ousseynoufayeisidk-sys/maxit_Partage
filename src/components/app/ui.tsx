@@ -110,10 +110,7 @@ export function SplashPartage() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,121,0,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,121,0,0.08)_1px,transparent_1px)] bg-[size:34px_34px] [mask-image:radial-gradient(circle_at_center,black,transparent_72%)]" />
 
       <div className="relative flex max-w-xs flex-col items-center px-8 text-center text-zinc-950">
-        <div className="mb-5 flex items-center gap-2 rounded-full border border-orange-200 bg-white/80 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-orange-600 shadow-sm backdrop-blur">
-          <Sparkles className="size-3.5" />
-          Orange Money
-        </div>
+      
 
         {/* Mascotte */}
         <div className="relative grid size-36 place-items-center rounded-full border border-orange-200 bg-white/80 shadow-[0_18px_55px_rgba(255,121,0,0.28)] backdrop-blur">
