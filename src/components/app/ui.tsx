@@ -83,16 +83,11 @@ export function SplashPartage() {
   const [gone, setGone] = useState(false);
 
   useEffect(() => {
-    // Récupérer la page précédente stockée
-    const previousRoute = sessionStorage.getItem('maxitPartage_previousRoute');
+    // Vérifier si le splash a déjà été affiché dans cette session
     const hasSeenSplash = sessionStorage.getItem('maxitPartage_splashShown');
     
-    // Afficher le splash si :
-    // 1. Première visite dans cette session (!hasSeenSplash)
-    // 2. OU si on vient de la page d'accueil (previousRoute === '/')
-    const shouldShowSplash = !hasSeenSplash || previousRoute === '/';
-    
-    if (shouldShowSplash) {
+    // Ne montrer le splash que si c'est la toute première fois dans la session
+    if (!hasSeenSplash) {
       setShow(true);
       sessionStorage.setItem('maxitPartage_splashShown', 'true');
       
@@ -104,12 +99,9 @@ export function SplashPartage() {
         window.clearTimeout(removeTimer);
       };
     } else {
-      // Ne pas afficher le splash
+      // Ne pas afficher le splash - déjà vu dans cette session
       setGone(true);
     }
-    
-    // Nettoyer le previousRoute après utilisation
-    sessionStorage.removeItem('maxitPartage_previousRoute');
   }, []);
 
   if (!show || gone) return null;
