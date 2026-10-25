@@ -234,6 +234,10 @@ function MaxitHome() {
                   to="/partage"
                   aria-label="Max it Partage — Les collectes entre amis"
                   className="group flex flex-col items-center gap-2"
+                  onClick={() => {
+                    // Enregistrer qu'on vient de la page d'accueil
+                    sessionStorage.setItem('maxitPartage_previousRoute', '/');
+                  }}
                 >
                   <span className="relative grid size-16 place-items-center rounded-[1.35rem] bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 text-black shadow-lg shadow-orange-500/30 transition duration-200 group-hover:-translate-y-1 group-active:scale-95">
                     <HandCoins className="size-7" />

@@ -78,20 +78,41 @@ export function TickerBanner({ items }: { items: string[] }) {
 /** Animated splash shown when entering the Max it Partage app. */
 
 export function SplashPartage() {
+  const [show, setShow] = useState(false);
   const [out, setOut] = useState(false);
   const [gone, setGone] = useState(false);
 
   useEffect(() => {
-    const exitTimer = window.setTimeout(() => setOut(true), 1800);
-    const removeTimer = window.setTimeout(() => setGone(true), 2450);
+    // Récupérer la page précédente stockée
+    const previousRoute = sessionStorage.getItem('maxitPartage_previousRoute');
+    const hasSeenSplash = sessionStorage.getItem('maxitPartage_splashShown');
+    
+    // Afficher le splash si :
+    // 1. Première visite dans cette session (!hasSeenSplash)
+    // 2. OU si on vient de la page d'accueil (previousRoute === '/')
+    const shouldShowSplash = !hasSeenSplash || previousRoute === '/';
+    
+    if (shouldShowSplash) {
+      setShow(true);
+      sessionStorage.setItem('maxitPartage_splashShown', 'true');
+      
+      const exitTimer = window.setTimeout(() => setOut(true), 1800);
+      const removeTimer = window.setTimeout(() => setGone(true), 2450);
 
-    return () => {
-      window.clearTimeout(exitTimer);
-      window.clearTimeout(removeTimer);
-    };
+      return () => {
+        window.clearTimeout(exitTimer);
+        window.clearTimeout(removeTimer);
+      };
+    } else {
+      // Ne pas afficher le splash
+      setGone(true);
+    }
+    
+    // Nettoyer le previousRoute après utilisation
+    sessionStorage.removeItem('maxitPartage_previousRoute');
   }, []);
 
-  if (gone) return null;
+  if (!show || gone) return null;
 
   return (
     <div
